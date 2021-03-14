@@ -5,6 +5,8 @@ import React from "react";
 import { getMakes, Make } from "../database/getMakes";
 import { makeStyles } from "@material-ui/core/styles";
 import { useRouter } from "next/router";
+import { getModels, Model } from "../database/getModels";
+import { getAsString } from "../getAsString";
 
 const useStyles = makeStyles((theme) => ({
     paper: {
@@ -18,18 +20,19 @@ const prices = [500,1000,5000,15000,25000,50000,100000]
 
 export interface HomeProps {
     makes: Make[];
+    models:Model[]
 }
 
-export default function Home({ makes }: HomeProps) {
+export default function Home({ makes, models }: HomeProps) {
     const classes = useStyles();
     const { query } = useRouter();
     console.log(query.make);
 
     const initialValues = {
-        make: query.make || "all",
-        model: query.model || "all",
-        minPrice: query.minPrice || "all",
-        maxPrice: query.maxPrice || "all",
+        make: getAsString(query.make) || "all",
+        model: getAsString (query.model) || "all",
+        minPrice:getAsString(query.minPrice) || "all",
+        maxPrice: getAsString(query.maxPrice )|| "all",
     };
     console.log("initial Value", initialValues);
 
@@ -63,9 +66,28 @@ export default function Home({ makes }: HomeProps) {
                                     </FormControl>
                                 </Grid>
 
-                                <Grid item xs={12} sm={6}>
-                                    Model
-                                </Grid>
+                                {/* <Grid item xs={12} sm={6}>
+                                    <FormControl fullWidth variant="outlined">
+                                        <InputLabel htmlFor="outlined-age-native-simple">
+                                            Model
+                                        </InputLabel>
+                                        <Field
+                                            name="model"
+                                            as={Select}
+                                            labelId="search-model"
+                                            label="Model"
+                                        >
+                                            <MenuItem value="all">
+                                                <em>All models</em>
+                                            </MenuItem>
+                                            {models.map(({ model, count }, id) => (
+                                                <MenuItem value={model} key={id}>
+                                                    {model} ({count})
+                                                </MenuItem>
+                                            ))}
+                                        </Field>
+                                    </FormControl>
+                                </Grid> */}
 
                                 <Grid item xs={12} sm={6}>
                                     <FormControl fullWidth variant="outlined">
@@ -120,7 +142,14 @@ export default function Home({ makes }: HomeProps) {
     );
 }
 
-export const getServerSideProps: GetServerSideProps = async () => {
-    const makes = await getMakes();
-    return { props: { makes } };
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+    const make = getAsString(ctx.query.make);
+
+    const [makes, models] = await Promise.all([
+        getMakes(),
+        getModels(make)
+    ])
+    // const makes = await getMakes();
+    // const models = await getModels(make)
+    return { props: { makes,models } };
 };
