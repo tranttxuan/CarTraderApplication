@@ -2,11 +2,11 @@ import { openDB } from "../openDB";
 
 export interface Model{
     model:string,
-    count:number
+    count:number;
 }
 
 export async function getModels(make:string) {
     const db = await openDB();
-    const models = db.get<Model[]>("SELECT model, count(*) as count FROM car WHERE make=? GROUP BY model", make);
+    const models = db.all<Model[]>("SELECT model, count(*) as count FROM car WHERE make=? GROUP BY model", make);
     return models;
 }

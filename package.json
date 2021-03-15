@@ -17,7 +17,8 @@
     "react-dom": "17.0.1",
     "sqlite": "^4.0.19",
     "sqlite3": "^5.0.2",
-    "swr": "^0.5.3"
+    "swr": "^0.5.3",
+    "yup": "^0.32.9"
   },
   "devDependencies": {
     "@types/node": "^14.14.34",
