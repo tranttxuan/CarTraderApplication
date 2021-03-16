@@ -24,6 +24,7 @@ export async function getPaginatedCars(query: ParsedUrlQuery) {
         "@minPrice": getValueNumber(query.minPrice),
         "@maxPrice": getValueNumber(query.maxPrice),
     };
+ 
 
     const carsPromise = await db.all<CarModel[]>(
         `SELECT * ${mainQuery} LIMIT @rowsPerPage OFFSET @offset`,
@@ -40,7 +41,6 @@ export async function getPaginatedCars(query: ParsedUrlQuery) {
     );
 
     const [cars, totalRows] = await Promise.all([carsPromise, totalRowsPromise]);
-    console.log("row", totalRows.count);
     return { cars, totalPages: Math.ceil(totalRows.count / rowsPerPage) || 1 };
    
 }
