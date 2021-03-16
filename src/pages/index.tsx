@@ -11,7 +11,7 @@ import {
 } from "@material-ui/core";
 import { Field, Form, Formik, useField, useFormikContext } from "formik";
 import { GetServerSideProps } from "next";
-import React from "react";
+import React, { useEffect } from "react";
 import { getMakes, Make } from "../database/getMakes";
 import { makeStyles } from "@material-ui/core/styles";
 import router, { useRouter } from "next/router";
@@ -32,11 +32,13 @@ const prices = [500, 1000, 5000, 15000, 25000, 50000, 100000];
 export interface HomeProps {
     makes: Make[];
     models: Model[];
+    singleColumn?: boolean;
 }
 
-export default function Search({ makes, models }: HomeProps) {
+export default function SearchComponent({ makes, models, singleColumn }: HomeProps) {
     const classes = useStyles();
     const { query } = useRouter();
+    const smValue = singleColumn ? 12 : 6;
     console.log(query.make);
 
     const initialValues = {
@@ -54,11 +56,11 @@ export default function Search({ makes, models }: HomeProps) {
                 onSubmit={(values) => {
                     router.push(
                         {
-                            pathname: "/",
+                            pathname: "/cars",
                             query: { ...values, page: 1 },
                         },
                         undefined,
-                        { shallow: true }
+                        { shallow: false }
                     );
                 }}
             >
@@ -66,8 +68,8 @@ export default function Search({ makes, models }: HomeProps) {
                     <Form>
                         <Box mt={10}>
                             <Paper elevation={5} className={classes.paper}>
-                                <Grid container spacing={3} >
-                                    <Grid item xs={12} sm={6}>
+                                <Grid container spacing={3}>
+                                    <Grid item xs={12} sm={smValue}>
                                         <FormControl fullWidth variant="outlined">
                                             <InputLabel htmlFor="outlined-age-native-simple">
                                                 Make
@@ -90,7 +92,7 @@ export default function Search({ makes, models }: HomeProps) {
                                         </FormControl>
                                     </Grid>
 
-                                    <Grid item xs={12} sm={6}>
+                                    <Grid item xs={12} sm={smValue}>
                                         <ModelSelect
                                             name="model"
                                             models={models}
@@ -98,7 +100,7 @@ export default function Search({ makes, models }: HomeProps) {
                                         />
                                     </Grid>
 
-                                    <Grid item xs={12} sm={6}>
+                                    <Grid item xs={12} sm={smValue}>
                                         <FormControl fullWidth variant="outlined">
                                             <InputLabel htmlFor="outlined-age-native-simple">
                                                 Min Price
@@ -120,7 +122,7 @@ export default function Search({ makes, models }: HomeProps) {
                                             </Field>
                                         </FormControl>
                                     </Grid>
-                                    <Grid item xs={12} sm={6}>
+                                    <Grid item xs={12} sm={smValue}>
                                         <FormControl fullWidth variant="outlined">
                                             <InputLabel htmlFor="outlined-age-native-simple">
                                                 No Max
@@ -142,7 +144,7 @@ export default function Search({ makes, models }: HomeProps) {
                                             </Field>
                                         </FormControl>
                                     </Grid>
-                                    <Grid item xs={12} sm={6}>
+                                    <Grid item xs={12} sm={smValue}>
                                         <Button
                                             type="submit"
                                             variant="contained"
@@ -174,14 +176,18 @@ export function ModelSelect({ models, make, ...props }: ModelSelectProps) {
         name: props.name,
     });
 
-    const { data } = useSWR<Model[]>("/api/models?make=" + make, {
+    // change make => change list of models
+    const { data } = useSWR<Model[]>(`/api/models?make=${make}`, {
+        dedupingInterval: 60000,
         onSuccess: (newValues) => {
+            console.log("it successes", newValues);
             if (!newValues.map((a) => a.model).includes(field.value)) {
                 setFieldValue("model", "all");
             }
         },
     });
     const newModels = data || models;
+
     return (
         <FormControl fullWidth variant="outlined">
             <InputLabel htmlFor="outlined-age-native-simple">Model</InputLabel>
